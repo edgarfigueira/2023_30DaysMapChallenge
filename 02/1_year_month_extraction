@@ -1,0 +1,51 @@
+import geojson
+from datetime import datetime
+
+# Load the initial GeoJSON data
+with open('your_geojson_file.geojson', 'r') as f:
+    data = geojson.load(f)
+
+# Extract available years and months
+available_years = set()
+available_months = set()
+
+for feature in data['features']:
+    timestamp = datetime.fromisoformat(feature['properties']['timestamp'][:-1])
+    available_years.add(timestamp.year)
+    available_months.add((timestamp.year, timestamp.month))
+
+# Present available years and months to the user
+print("Available Years:")
+for year in sorted(available_years):
+    print(year)
+
+selected_year = int(input("Enter the year (YYYY): "))
+
+print("\nAvailable Months:")
+for year, month in sorted(available_months):
+    if year == selected_year:
+        print(f"{year}-{month:02d}")
+
+selected_month = int(input("Enter the month (MM): "))
+
+# Filter features based on the user's specified year and month
+filtered_features = []
+for feature in data['features']:
+    timestamp = datetime.fromisoformat(feature['properties']['timestamp'][:-1])
+    if timestamp.year == selected_year and timestamp.month == selected_month:
+        filtered_features.append(feature)
+
+# Create a new GeoJSON object with the filtered features
+filtered_data = {
+    "type": "FeatureCollection",
+    "features": filtered_features
+}
+
+# Define the filename based on user input
+filename = f"{selected_year}_{selected_month:02d}.geojson"
+
+# Save the GeoJSON file
+with open(filename, "w") as f:
+    geojson.dump(filtered_data, f)
+
+print(f"GeoJSON file '{filename}' has been created with data from {selected_year}-{selected_month:02d}.")
